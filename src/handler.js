@@ -123,6 +123,22 @@ const editBookByIdHandler = (request, h) => {
   return setResponseStatusMessage(h, 'fail', 'Gagal memperbarui buku. Id tidak ditemukan', 404);
 };
 
+const deleteBookByIdHandler = (request, h) => {
+  const { bookId } = request.params;
+
+  const index = books.findIndex((book) => book.id === bookId);
+  if (index !== -1) {
+    books.splice(index, 1);
+    return setResponseStatusMessage(h, 'success', 'Buku berhasil dihapus', 200);
+  }
+
+  return setResponseStatusMessage(h, 'fail', 'Buku gagal dihapus. Id tidak ditemukan', 404);
+};
+
 module.exports = {
-  getAllBooksHandler, addBooksHandler, getBookByIdHandler, editBookByIdHandler,
+  getAllBooksHandler,
+  addBooksHandler,
+  getBookByIdHandler,
+  editBookByIdHandler,
+  deleteBookByIdHandler,
 };
