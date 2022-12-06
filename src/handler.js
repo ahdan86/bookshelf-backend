@@ -60,16 +60,35 @@ const addBooksHandler = (request, h) => {
   return setResponseStatusMessage(h, 'error', 'Buku gagal ditambahkan', 500);
 };
 
-const getAllBooksHandler = () => ({
-  status: 'success',
-  data: {
-    books: books.map((book) => ({
-      id: book.id,
-      name: book.name,
-      publisher: book.publisher,
-    })),
-  },
-});
+const getAllBooksHandler = (request, h) => {
+  const { name, reading, finished } = request.query;
+  let booksData = books;
+
+  if (typeof name !== 'undefined') {
+    booksData = booksData.filter((b) => b.name.toLowerCase().includes(name.toLowerCase()));
+  }
+
+  if (typeof reading !== 'undefined') {
+    booksData = booksData.filter((b) => b.reading === (parseInt(reading, 10) !== 0));
+  }
+
+  if (typeof finished !== 'undefined') {
+    booksData = booksData.filter((b) => b.finished === (parseInt(finished, 10) !== 0));
+  }
+
+  const response = h.response({
+    status: 'success',
+    data: {
+      books: booksData.map((book) => ({
+        id: book.id,
+        name: book.name,
+        publisher: book.publisher,
+      })),
+    },
+  });
+  response.code(200);
+  return response;
+};
 
 const getBookByIdHandler = (request, h) => {
   const { bookId } = request.params;
