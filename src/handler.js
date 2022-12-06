@@ -1,7 +1,7 @@
 const { nanoid } = require('nanoid');
 const books = require('./books');
 
-const setFailResponseStatusMessage = (h, statusText, messageText, responseCode) => {
+const setResponseStatusMessage = (h, statusText, messageText, responseCode) => {
   const response = h.response({
     status: statusText,
     message: messageText,
@@ -21,11 +21,11 @@ const addBooksHandler = (request, h) => {
   const finished = pageCount === readPage;
 
   if (typeof name === 'undefined') {
-    return setFailResponseStatusMessage(h, 'fail', 'Gagal menambahkan buku. Mohon isi nama buku', 400);
+    return setResponseStatusMessage(h, 'fail', 'Gagal menambahkan buku. Mohon isi nama buku', 400);
   }
 
   if (readPage > pageCount) {
-    return setFailResponseStatusMessage(h, 'fail', 'Gagal menambahkan buku. readPage tidak boleh lebih besar dari pageCount', 400);
+    return setResponseStatusMessage(h, 'fail', 'Gagal menambahkan buku. readPage tidak boleh lebih besar dari pageCount', 400);
   }
 
   const newBook = {
@@ -57,7 +57,7 @@ const addBooksHandler = (request, h) => {
     return response;
   }
 
-  return setFailResponseStatusMessage(h, 'error', 'Buku gagal ditambahkan', 500);
+  return setResponseStatusMessage(h, 'error', 'Buku gagal ditambahkan', 500);
 };
 
 const getAllBooksHandler = () => ({
@@ -84,12 +84,45 @@ const getBookByIdHandler = (request, h) => {
     };
   }
 
-  const response = h.response({
-    status: 'fail',
-    message: 'Buku tidak ditemukan',
-  });
-  response.code(404);
-  return response;
+  return setResponseStatusMessage(h, 'fail', 'Buku tidak ditemukan', 404);
 };
 
-module.exports = { getAllBooksHandler, addBooksHandler, getBookByIdHandler };
+const editBookByIdHandler = (request, h) => {
+  const { bookId } = request.params;
+  const {
+    name, year, author, summary, publisher, pageCount, readPage, reading,
+  } = request.payload;
+  const updatedAt = new Date().toISOString();
+
+  if (typeof name === 'undefined') {
+    return setResponseStatusMessage(h, 'fail', 'Gagal memperbarui buku. Mohon isi nama buku', 400);
+  }
+
+  if (readPage > pageCount) {
+    return setResponseStatusMessage(h, 'fail', 'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount', 400);
+  }
+
+  const index = books.findIndex((book) => book.id === bookId);
+  if (index !== -1) {
+    books[index] = {
+      ...books[index],
+      name,
+      year,
+      author,
+      summary,
+      publisher,
+      pageCount,
+      readPage,
+      reading,
+      updatedAt,
+    };
+
+    return setResponseStatusMessage(h, 'success', 'Buku berhasil diperbarui', 200);
+  }
+
+  return setResponseStatusMessage(h, 'fail', 'Gagal memperbarui buku. Id tidak ditemukan', 404);
+};
+
+module.exports = {
+  getAllBooksHandler, addBooksHandler, getBookByIdHandler, editBookByIdHandler,
+};
